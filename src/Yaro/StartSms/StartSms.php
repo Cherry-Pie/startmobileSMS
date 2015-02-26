@@ -18,10 +18,11 @@ class StartSms
     const REJECTED_STATE      = 'Rejected'; // сообщение отвергнуто из-за ошибок в нем (нарушение формата, попытка отправить сообщение пределы украинских операторов и т.п.)
     const UNKNOWN_STATE       = 'Unknown'; // состояние сообщения неизвестно.
 
-    private $apiUrl   = ' http://bulk.startmobile.com.ua/clients.php';
+    private $apiUrl   = 'http://bulk.startmobile.com.ua/clients.php';
     private $login    = '';
     private $password = '';
     private $sender   = '';
+    private $validity = '';
     
     private $rawReponse;
     private $response;
@@ -32,15 +33,20 @@ class StartSms
     {
         $this->login    = Config::get('start-sms::login');
         $this->password = Config::get('start-sms::password');
-        $this->sender   = Config::get('start-sms::sender');
+        $this->sender   = Config::get('start-sms::sender', 'INFO');
+        $this->validity = Config::get('start-sms::validity', '+2 hour');
     } // end __construct
 
-    public function send($phone, $message, $sender = false)
+    public function send($phone, $message, $start = false, $validity = false, $sender = false)
     {
         $xml = new \SimpleXMLElement('<message/>');
         $service = $xml->addChild('service');
         $service->addAttribute('id', 'single');
         $service->addAttribute('source', $this->getSender($sender));
+        $service->addAttribute('validity', $this->getValidity($validity));
+        if ($start) {
+            $service->addAttribute('start', $start);
+        }
         
         $xml->addChild('to', $this->onPhoneCheck($phone));
         
@@ -48,10 +54,24 @@ class StartSms
         $body->addAttribute('content-type', 'text/plain');
         
         $this->rawResponse = $this->doSendXML($xml->asXML());
-        $this->response    = $this->doPrepareSingleResponse($response);
+        $this->response    = $this->doPrepareSingleResponse($this->rawResponse);
         
         return $this;
     } // end send
+    
+    public function getID()
+    {
+        return $this->response['status']['id'];
+    } // end getID
+    
+    private function getValidity($validity)
+    {
+        if ($validity) {
+            return $validity;
+        }
+        
+        return $this->validity;
+    } // end getValidity
     
     private function getSender($sender)
     {

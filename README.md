@@ -17,12 +17,29 @@ In app/config/app.php:
 
 **For single sms:**
 ```php
- // StartSms::send($phone, $message[, $sender])
+ // StartSms::send($phone, $message[, $start, $validity, $sender])
 $sms = StartSms::send('+380671234567', 'Oh hai');
 if (!$sms->isOk()) {
-    echo $sms->getError();
+    throw new Exception($sms->getError());
 }
 
-// $response = $sms->getRawResponse();
-// $response = $sms->getResponse();
+echo $sms->getID(); // 280323869812345468728
+
+$xmlResponse = $sms->getRawResponse();
+$arrayResponse = $sms->getResponse();
+
+print_r($arrayResponse);
+/*
+Array
+(
+    [status] => Array
+        (
+            [@date] => Thu, 26 Feb 2015 09:42:53 +0200
+            [id] => 280323869812345468728
+            [state] => Accepted
+        )
+
+)
+*/
+
 ```

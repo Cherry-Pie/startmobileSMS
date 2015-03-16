@@ -31,6 +31,9 @@ class StartSms
     
     public function __construct()
     {
+        if (Config::get('start-sms::api_url')) {
+            $this->apiUrl = Config::get('start-sms::api_url');
+        }
         $this->login    = Config::get('start-sms::login');
         $this->password = Config::get('start-sms::password');
         $this->sender   = Config::get('start-sms::sender', 'INFO');

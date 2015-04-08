@@ -216,7 +216,7 @@ class StartSms
             'http' => array(
                 'method'  => 'POST',
                 'content' => $xml, 
-                'header'  => $credentials
+                'header'  => $credentials ."\r\nContent-type: text/xml"
             )
         );
         $context = stream_context_create($params);
